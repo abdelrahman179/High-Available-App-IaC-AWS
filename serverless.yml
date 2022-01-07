@@ -1,0 +1,67 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: myserverlessproject
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  profile: serverlessUser
+  region: us-east-1
+  stage: dev
+  environment: 
+    imageUploadBucket: ${self:custom.imageUploadBucket}
+    region: ${self:provider.region}
+  iamRoleStatements:
+    - Effect: Allow
+      Action: 
+        - s3:*
+      Resource: '*'
+
+plugins:
+  # to package the code into smaller sections 
+  - serverless-webpack
+
+# each of lambda needs to be packaged individually
+package:
+  individually: true
+
+custom:
+  imageUploadBucket: cloudvests-bonus-image-upload-bucket-2022
+
+
+functions:
+    imageUpload: 
+    # >> pointing to handler.js file
+      handler: lambdas/imageUpload.handler
+      # >> make it through API / event to trigger the lambda
+      events:
+        - http:
+            # end of url to trigger the lambda
+            path: uploadImage
+            # method "get, post or delete"
+            method: POST
+            # to be able to hit the api through webpage
+            cors: true
+    
+# >> adding serverless s3 bucket
+resources: 
+  Resources:
+    ImageUploadBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.imageUploadBucket}
+        # who can access the bucket data
+        AccessControl: PublicRead
